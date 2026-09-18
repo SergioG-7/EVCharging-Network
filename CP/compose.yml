@@ -1,0 +1,221 @@
+services:
+  ev_w:
+        build:
+            context: .
+            dockerfile: Dockerfile
+        image: ev_w:latest
+        command: ["EV_W.py"]
+        environment:
+            - API_CENTRAL_URL=http://${CENTRAL_IP}:5001
+            - TZ=Europe/Madrid
+        volumes:
+            - ./weather_config.txt:/app/weather_config.txt:rw
+        stdin_open: true
+        tty: true
+  engine1:
+    build: .
+    image: ev_cp:latest
+    container_name: engine1
+    entrypoint: ["python", "EV_CP_E.py"]
+    command: ["0.0.0.0", "6001", "${KAFKA_IP}", "9092","0.25"]
+    stdin_open: true
+    tty: true
+    
+  monitor1:
+    build: .
+    image: ev_cp:latest
+    container_name: monitor1
+    entrypoint: ["python", "EV_CP_M.py"]
+    command: ["engine1", "6001", "${CENTRAL_IP}", "5000", "1", "Madrid", "0.25","${REGISTRY_IP}"]
+    depends_on:
+      - engine1
+    stdin_open: true
+    tty: true
+    
+  engine2:
+    build: .
+    image: ev_cp:latest
+    container_name: engine2
+    entrypoint: ["python", "EV_CP_E.py"]
+    command: ["0.0.0.0", "6002", "${KAFKA_IP}", "9092","0.30"]
+    stdin_open: true
+    tty: true
+    
+  monitor2:
+    build: .
+    image: ev_cp:latest
+    container_name: monitor2
+    entrypoint: ["python", "EV_CP_M.py"]
+    command: ["engine2", "6002", "${CENTRAL_IP}", "5000", "2", "Valencia", "0.30","${REGISTRY_IP}"]
+    depends_on:
+      - engine2
+    stdin_open: true
+    tty: true
+
+  engine3:
+    build: .
+    image: ev_cp:latest
+    container_name: engine3
+    entrypoint: ["python", "EV_CP_E.py"]
+    command: ["0.0.0.0", "6003", "${KAFKA_IP}", "9092", "0.35"]
+    stdin_open: true
+    tty: true
+
+  monitor3:
+    build: .
+    image: ev_cp:latest
+    container_name: monitor3
+    entrypoint: ["python", "EV_CP_M.py"]
+    command: ["engine3", "6003", "${CENTRAL_IP}", "5000", "3", "Ulan Bator", "0.35","${REGISTRY_IP}"]
+    depends_on:
+      - engine3
+    stdin_open: true
+    tty: true
+
+  engine4:
+    build: .
+    image: ev_cp:latest
+    container_name: engine4
+    entrypoint: ["python", "EV_CP_E.py"]
+    command: ["0.0.0.0", "6004", "${KAFKA_IP}", "9092", "0.28"]
+    stdin_open: true
+    tty: true
+
+  monitor4:
+    build: .
+    image: ev_cp:latest
+    container_name: monitor4
+    entrypoint: ["python", "EV_CP_M.py"]
+    command: ["engine4", "6004", "${CENTRAL_IP}", "5000", "4", "Barcelona", "0.28","${REGISTRY_IP}"]
+    depends_on:
+      - engine4
+    stdin_open: true
+    tty: true
+
+
+  engine5:
+    build: .
+    image: ev_cp:latest
+    container_name: engine5
+    entrypoint: ["python", "EV_CP_E.py"]
+    command: ["0.0.0.0", "6005", "${KAFKA_IP}", "9092", "0.28"]
+    stdin_open: true
+    tty: true
+
+  monitor5:
+    build: .
+    image: ev_cp:latest
+    container_name: monitor5
+    entrypoint: ["python", "EV_CP_M.py"]
+    command: ["engine5", "6005", "${CENTRAL_IP}", "5000", "5", "Cadiz", "0.23","${REGISTRY_IP}"]
+    depends_on:
+      - engine5
+    stdin_open: true
+    tty: true
+
+  engine6:
+    build: .
+    image: ev_cp:latest
+    container_name: engine6
+    entrypoint: ["python", "EV_CP_E.py"]
+    command: ["0.0.0.0", "6006", "${KAFKA_IP}", "9092", "0.40"]
+    stdin_open: true
+    tty: true
+
+  monitor6:
+    build: .
+    image: ev_cp:latest
+    container_name: monitor6
+    entrypoint: ["python", "EV_CP_M.py"]
+    command: ["engine6", "6006", "${CENTRAL_IP}", "5000", "6", "Badajoz", "0.40","${REGISTRY_IP}"]
+    depends_on:
+      - engine6
+    stdin_open: true
+    tty: true
+
+
+  engine7:
+    build: .
+    image: ev_cp:latest
+    container_name: engine7
+    entrypoint: ["python", "EV_CP_E.py"]
+    command: ["0.0.0.0", "6007", "${KAFKA_IP}", "9092", "0.32"]
+    stdin_open: true
+    tty: true
+
+
+  monitor7:
+    build: .
+    image: ev_cp:latest
+    container_name: monitor7
+    entrypoint: ["python", "EV_CP_M.py"]
+    command: ["engine7", "6007", "${CENTRAL_IP}", "5000", "7", "Malaga", "0.32","${REGISTRY_IP}"]
+    depends_on:
+      - engine7
+    stdin_open: true
+    tty: true
+
+ 
+  engine8:
+    build: .
+    image: ev_cp:latest
+    container_name: engine8
+    entrypoint: ["python", "EV_CP_E.py"]
+    command: ["0.0.0.0", "6008", "${KAFKA_IP}", "9092", "0.45"]
+    stdin_open: true
+    tty: true
+
+
+  monitor8:
+    build: .
+    image: ev_cp:latest
+    container_name: monitor8
+    entrypoint: ["python", "EV_CP_M.py"]
+    command: ["engine8", "6008", "${CENTRAL_IP}", "5000", "8", "Murmansk", "0.45","${REGISTRY_IP}"]
+    depends_on:
+      - engine8
+    stdin_open: true
+    tty: true
+
+  engine9:
+   build: .
+   image: ev_cp:latest
+   container_name: engine9
+   entrypoint: ["python", "EV_CP_E.py"]
+   command: ["0.0.0.0", "6009", "${KAFKA_IP}", "9092", "0.50"]
+   stdin_open: true
+   tty: true
+
+
+  monitor9:
+   build: .
+   image: ev_cp:latest
+   container_name: monitor9
+   entrypoint: ["python", "EV_CP_M.py"]
+   command: ["engine9", "6009", "${CENTRAL_IP}", "5000", "9", "Amsterdan", "0.50","${REGISTRY_IP}"]
+   depends_on:
+    - engine9
+   stdin_open: true
+   tty: true
+
+
+  engine10:
+   build: .
+   image: ev_cp:latest
+   container_name: engine10
+   entrypoint: ["python", "EV_CP_E.py"]
+   command: ["0.0.0.0", "6010", "${KAFKA_IP}", "9092", "0.63"]
+   stdin_open: true
+   tty: true
+
+
+  monitor10:
+   build: .
+   image: ev_cp:latest
+   container_name: monitor10
+   entrypoint: ["python", "EV_CP_M.py"]
+   command: ["engine10", "6010", "${CENTRAL_IP}", "5000", "10", "Guadalajara", "0.63","${REGISTRY_IP}"]
+   depends_on:
+     - engine10
+   stdin_open: true
+   tty: true

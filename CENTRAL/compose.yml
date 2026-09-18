@@ -1,0 +1,89 @@
+services:
+    central:
+        build:
+            context: .
+            dockerfile: Dockerfile
+        image: ev_central:latest
+        command: ["EV_Central.py", "5000", "broker", "29092", "db", "3306", "5"]
+        ports:
+            - "5000:5000"
+        depends_on:
+            broker:
+                condition: service_started
+            db:
+                condition: service_started
+        environment:
+            - TZ=Europe/Madrid
+        volumes:
+            - ./central.log:/app/central.log
+            - /etc/localtime:/etc/localtime:ro
+            - /etc/timezone:/etc/timezone:ro
+        stdin_open: true
+        tty: true
+    broker:
+        image: apache/kafka:4.1.0
+        hostname: broker
+        container_name: broker
+        ports:
+            - "9092:9092"
+        environment:
+            KAFKA_BROKER_ID: 1
+            KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT,CONTROLLER:PLAINTEXT
+            KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://broker:29092,PLAINTEXT_HOST://host.docker.internal:9092
+            KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+            KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+            KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+            KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+            KAFKA_PROCESS_ROLES: broker,controller
+            KAFKA_NODE_ID: 1
+            KAFKA_CONTROLLER_QUORUM_VOTERS: 1@broker:29093
+            KAFKA_LISTENERS: PLAINTEXT://broker:29092,CONTROLLER://broker:29093,PLAINTEXT_HOST://0.0.0.0:9092
+            KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+            KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+            KAFKA_LOG_DIRS: /tmp/kraft-combined-logs
+            CLUSTER_ID: "gTBb85_WRXu6oQgq-brTQw"
+    db:
+        image: mysql:8.4
+        restart: always
+        environment:
+            MYSQL_ROOT_PASSWORD: 1234
+            MYSQL_DATABASE: evcharging
+        volumes:
+            - ./creadorbd.sql:/docker-entrypoint-initdb.d/001_creadorbd.sql:ro
+            - db_data:/var/lib/mysql
+    api_central:
+        build:
+            context: .
+            dockerfile: Dockerfile
+        image: api_central:latest
+        command: ["API_Central.py"]
+        ports:
+            - "8000:5001"
+        depends_on:
+            db:
+                condition: service_started
+        environment:
+            - TZ=Europe/Madrid
+            - DB_HOST=db
+            - DB_PORT=3306
+            - DB_NAME=evcharging
+            - DB_USER=root
+            - DB_PASS=1234
+        volumes:
+            - ./central.log:/app/central.log:ro
+   
+    front:
+        build:
+            context: .
+            dockerfile: Dockerfile
+        image: front:latest
+        command: ["Front.py"]
+        ports:
+            - "8081:8080"
+        depends_on:
+            api_central:
+                condition: service_started
+        environment:
+            - TZ=Europe/Madrid
+volumes:
+  db_data:
