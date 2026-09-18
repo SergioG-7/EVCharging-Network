@@ -8,13 +8,13 @@
 
 Sistema distribuido resiliente y en tiempo real para la gestión, monitorización y seguridad de una red de puntos de recarga de vehículos eléctricos (Charging Points / CP).
 
-El proyecto implementa principios de **Arquitectura Orientada a Servicios (SOA)**, streaming de eventos asíncrono, comunicación por sockets TCP, APIs RESTful y mecanismos de seguridad de canal (SSL/TLS con certificados) junto con cifrado de carga útil a nivel de aplicación[cite: 3].
+El proyecto implementa principios de **Arquitectura Orientada a Servicios (SOA)**, streaming de eventos asíncrono, comunicación por sockets TCP, APIs RESTful y mecanismos de seguridad de canal (SSL/TLS con certificados) junto con cifrado de carga útil a nivel de aplicación.
 
 ---
 
 ## 🏗️ Arquitectura del Sistema
 
-El sistema opera desacoplado en nodos independientes preparados para ejecutarse tanto en red local distribuida (multi-PC) como mediante contenedores Docker[cite: 3, 4]:
+El sistema opera desacoplado en nodos independientes preparados para ejecutarse tanto en red local distribuida (multi-PC) como mediante contenedores Docker:
 
 ```
                                   [ OpenWeather API ]
@@ -37,24 +37,24 @@ El sistema opera desacoplado en nodos independientes preparados para ejecutarse 
 
 ### Componentes Principales
 
-*   **`EV_Central` (Core System):** Orquestador central del sistema[cite: 3, 4]. Gestiona el estado operativo de los CPs y usuarios, base de datos de persistencia (`database.py`), registro de auditoría de eventos en tiempo real y revocación dinámica de credenciales[cite: 3].
-*   **`API_Central` & `Front.py`:** Dashboard web público y servidor API REST que expone el estado de los cargadores (disponible, suministrando, fuera de servicio, averiado), telemetría de consumos e información meteorológica en tiempo real[cite: 3, 4].
+*   **`EV_Central` (Core System):** Orquestador central del sistema. Gestiona el estado operativo de los CPs y usuarios, base de datos de persistencia (`database.py`), registro de auditoría de eventos en tiempo real y revocación dinámica de credenciales.
+*   **`API_Central` & `Front.py`:** Dashboard web público y servidor API REST que expone el estado de los cargadores (disponible, suministrando, fuera de servicio, averiado), telemetría de consumos e información meteorológica en tiempo real.
 *   **`EV_CP` (Charging Points):**
-    *   **`EV_CP_M` (Monitor):** Módulo supervisor del cargador[cite: 4]. Gestiona el alta y baja ante `EV_Registry`[cite: 3], autenticación con la Central[cite: 3, 4] y health checks periódicos por sockets con el motor[cite: 4].
-    *   **`EV_CP_E` (Engine):** Controlador de suministro energético[cite: 4]. Emite telemetría de carga cifrada hacia la Central mediante tópicos de Apache Kafka[cite: 3, 4].
-*   **`EV_W` (Weather Control Office):** Microservicio que consulta periódicamente (cada 4s) la temperatura de cada ubicación a través de la API de OpenWeather[cite: 3]. Notifica a `EV_Central` para ordenar paradas preventivas de emergencia si la temperatura cae por debajo de 0 °C[cite: 3].
-*   **`EV_Registry`:** Servicio de autorización y registro de nuevos CPs[cite: 3]. Gestiona el ciclo de vida del punto de carga mediante endpoints REST y canal seguro cifrado mediante certificados SSL (`certServ.pem`)[cite: 3].
-*   **`EV_Driver`:** Aplicación de clientes/conductores[cite: 4]. Permite solicitar suministros puntuales o en lotes desatendidos leyendo archivos de transacciones (`recargas_cp.txt`) a través del broker de eventos[cite: 4].
+    *   **`EV_CP_M` (Monitor):** Módulo supervisor del cargador. Gestiona el alta y baja ante `EV_Registry`, autenticación con la Central y health checks periódicos por sockets con el motor[cite: 4].
+    *   **`EV_CP_E` (Engine):** Controlador de suministro energético. Emite telemetría de carga cifrada hacia la Central mediante tópicos de Apache Kafka.
+*   **`EV_W` (Weather Control Office):** Microservicio que consulta periódicamente (cada 4s) la temperatura de cada ubicación a través de la API de OpenWeather. Notifica a `EV_Central` para ordenar paradas preventivas de emergencia si la temperatura cae por debajo de 0 °C.
+*   **`EV_Registry`:** Servicio de autorización y registro de nuevos CPs. Gestiona el ciclo de vida del punto de carga mediante endpoints REST y canal seguro cifrado mediante certificados SSL (`certServ.pem`).
+*   **`EV_Driver`:** Aplicación de clientes/conductores. Permite solicitar suministros puntuales o en lotes desatendidos leyendo archivos de transacciones (`recargas_cp.txt`) a través del broker de eventos.
 
 ---
 
 ## 🔒 Mecanismos de Seguridad y Resiliencia
 
-*   **Canal Seguro SSL/TLS:** Autenticación e intercambio inicial de credenciales de cargadores con `EV_Registry` bajo canales cifrados con certificado PEM (`certServ.pem`)[cite: 3].
-*   **Cifrado Simétrico Dinámico:** Generación de claves de cifrado simétricas únicas por CP tras la autenticación[cite: 3]. Todos los payloads de telemetría de recarga depositados en Kafka van encriptados para evitar ataques Man-in-the-Middle (MITM)[cite: 3].
-*   **Revocación de Claves:** Capacidad desde la Central de invalidar la sesión de un CP de forma remota ante incidencias o brechas, forzando la reautenticación[cite: 3].
-*   **Auditoría Estructurada:** Registro pormenorizado en base de datos de cada acción (IP de origen, timestamp, acción, parámetros y estado)[cite: 3].
-*   **Tolerancia a Fallos y Reconexión:** Manejo de interrupciones de red, reintentos automáticos en colas Kafka y finalización segura de carga ante averías o congelación[cite: 3, 4].
+*   **Canal Seguro SSL/TLS:** Autenticación e intercambio inicial de credenciales de cargadores con `EV_Registry` bajo canales cifrados con certificado PEM (`certServ.pem`).
+*   **Cifrado Simétrico Dinámico:** Generación de claves de cifrado simétricas únicas por CP tras la autenticación. Todos los payloads de telemetría de recarga depositados en Kafka van encriptados para evitar ataques Man-in-the-Middle (MITM).
+*   **Revocación de Claves:** Capacidad desde la Central de invalidar la sesión de un CP de forma remota ante incidencias o brechas, forzando la reautenticación.
+*   **Auditoría Estructurada:** Registro pormenorizado en base de datos de cada acción (IP de origen, timestamp, acción, parámetros y estado).
+*   **Tolerancia a Fallos y Reconexión:** Manejo de interrupciones de red, reintentos automáticos en colas Kafka y finalización segura de carga ante averías o congelación.
 
 ---
 
@@ -99,20 +99,20 @@ El sistema opera desacoplado en nodos independientes preparados para ejecutarse 
 
 ## 🚀 Despliegue y Ejecución
 
-El sistema está preparado para desplegarse en **3 máquinas independientes** en red local (o en una máquina única utilizando diferentes puertos)[cite: 3, 4]:
+El sistema está preparado para desplegarse en **3 máquinas independientes** en red local (o en una máquina única utilizando diferentes puertos):
 
 ### Requisitos Previos
 
 *   Python 3.10+
 *   Docker y Docker Compose
 *   Broker Apache Kafka
-*   API Key de [OpenWeatherMap](https://openweathermap.org/)[cite: 3]
+*   API Key de [OpenWeatherMap](https://openweathermap.org/)
 
 ---
 
-### Escenario Multi-Máquina (3 PCs)[cite: 3]
+### Escenario Multi-Máquina (3 PCs)
 
-#### Máquina 1: Core System (Central, Front & Kafka)[cite: 3]
+#### Máquina 1: Core System (Central, Front & Kafka)
 1. Iniciar servicios base (Kafka, Zookeeper, MySQL):
    ```bash
    cd CENTRAL
@@ -123,7 +123,7 @@ El sistema está preparado para desplegarse en **3 máquinas independientes** en
    python lanzar_Central.py
    ```
 
-#### Máquina 2: Charging Points & Weather Office[cite: 3]
+#### Máquina 2: Charging Points & Weather Office
 1. Configurar la IP de la Máquina 1 en `weather_config.txt` y en los scripts de red.
 2. Iniciar el monitor climático:
    ```bash
@@ -135,7 +135,7 @@ El sistema está preparado para desplegarse en **3 máquinas independientes** en
    python lanzar_CP.py
    ```
 
-#### Máquina 3: Drivers & Registry Service[cite: 3]
+#### Máquina 3: Drivers & Registry Service
 1. Levantar el microservicio de registro seguro:
    ```bash
    cd DRIVER
@@ -150,9 +150,9 @@ El sistema está preparado para desplegarse en **3 máquinas independientes** en
 
 ## 📊 Dashboard y Telemetría
 
-El panel web es accesible vía navegador en `http://<IP_CENTRAL>:<PUERTO_FRONT>`[cite: 3, 4] y muestra:
+El panel web es accesible vía navegador en `http://<IP_CENTRAL>:<PUERTO_FRONT>` y muestra:
 
-*   **Identificación y Ubicación:** Cargadores activos por identificador y dirección[cite: 3, 4].
-*   **Estado Operativo:** Activado (Verde), Suministrando (Verde con métricas en kW y €), Parado / Alerta climática (Naranja) y Averiado (Rojo)[cite: 4].
-*   **Telemetría del Clima:** Monitorización térmica en tiempo real provista por `EV_W`[cite: 3].
-*   **Transacciones Activas:** ID de conductor, consumo instantáneo y tarificación calculada en vivo[cite: 4].
+*   **Identificación y Ubicación:** Cargadores activos por identificador y dirección.
+*   **Estado Operativo:** Activado (Verde), Suministrando (Verde con métricas en kW y €), Parado / Alerta climática (Naranja) y Averiado (Rojo).
+*   **Telemetría del Clima:** Monitorización térmica en tiempo real provista por `EV_W`.
+*   **Transacciones Activas:** ID de conductor, consumo instantáneo y tarificación calculada en vivo.
